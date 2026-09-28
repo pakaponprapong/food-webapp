@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>คิวรออาหาร</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f7f7f7;
+            color: #333;
+        }
+
+        .card {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 24px;
+        }
+
+        h1 {
+            margin-bottom: 12px;
+        }
+
+        .queue-box {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border: 1px solid #ffcc80;
+            border-radius: 12px;
+            padding: 22px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .queue-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #e65100;
+        }
+
+        .queue-list {
+            margin-top: 20px;
+        }
+
+        .queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .queue-item strong {
+            font-size: 1.05rem;
+        }
+
+        .tag {
+            background: #ff9800;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+        }
+
+        .button-row {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button, a.button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            background: #1976d2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .secondary {
+            background: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>คิวรอรับอาหาร</h1>
+
+        <div class="queue-box">
+            <div>หมายเลขคิวของคุณ</div>
+            <div id="myQueueNumber" class="queue-number">-</div>
+        </div>
+
+        <div>
+            <strong>ชื่อ:</strong> <span id="customerName">-</span><br />
+            <strong>เบอร์:</strong> <span id="phone">-</span>
+        </div>
+
+        <div class="queue-list">
+            <h3>คิวที่เหลือ</h3>
+            <div id="queueList">กำลังโหลด...</div>
+        </div>
+
+        <div class="button-row">
+            <a class="button secondary" href="main.html">กลับหน้าแรก</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('orderId');
+
+        const renderQueue = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/queue');
+                const queue = response.data || [];
+                const queueList = document.getElementById('queueList');
+
+                if (!queue.length) {
+                    queueList.innerHTML = '<p>ยังไม่มีคิวในวันนี้</p>';
+                    return;
+                }
+
+                const myOrder = queue.find(item => String(item.order_id) === String(orderId));
+                const currentQueueNumber = myOrder ? Number(myOrder.queue_number) : null;
+
+                if (myOrder) {
+                    document.getElementById('myQueueNumber').textContent = myOrder.queue_number || '-';
+                    document.getElementById('customerName').textContent = myOrder.customerName || '-';
+                    document.getElementById('phone').textContent = myOrder.phone || '-';
+                } else if (orderId) {
+                    document.getElementById('myQueueNumber').textContent = 'รอชำระเงิน';
+                    document.getElementById('customerName').textContent = '—';
+                    document.getElementById('phone').textContent = '—';
+                    queueList.innerHTML = '<p>ยังไม่มีคิวของคุณในวันนี้ เพราะออเดอร์ยังอยู่ในสถานะรอชำระเงิน</p>';
+                    return;
+                }
+
+                const remainingQueue = currentQueueNumber != null
+                    ? queue.filter(item => Number(item.queue_number) > currentQueueNumber)
+                    : queue;
+
+                if (!remainingQueue.length) {
+                    queueList.innerHTML = '<p>คิวที่เหลือไม่มีแล้ว</p>';
+                    return;
+                }
+
+                queueList.innerHTML = remainingQueue
+                    .map(item => `
+                        <div class="queue-item">
+                            <strong>คิวที่ ${item.queue_number || '-'}</strong>
+                            <span>${item.customerName || 'ไม่ระบุชื่อ'} <span class="tag">${item.status || 'Waiting'}</span></span>
+                        </div>
+                    `)
+                    .join('');
+            } catch (error) {
+                console.error('Queue load error', error);
+                document.getElementById('queueList').innerHTML = '<p>เกิดข้อผิดพลาดในการโหลดคิว</p>';
+            }
+        };
+
+        if (orderId) {
+            axios.get(`http://localhost:8000/orders/${orderId}`)
+                .then(response => {
+                    const order = response.data || {};
+                    if (order.status === 'Awaiting Payment') {
+                        document.getElementById('myQueueNumber').textContent = 'รอชำระเงิน';
+                        document.getElementById('customerName').textContent = order.customerName || '-';
+                        document.getElementById('phone').textContent = order.phone || '-';
+                        return;
+                    }
+                    axios.get('http://localhost:8000/queue')
+                        .then(queueResponse => {
+                            const queueItem = (queueResponse.data || []).find(item => String(item.order_id) === String(orderId));
+                            if (queueItem) {
+                                document.getElementById('myQueueNumber').textContent = queueItem.queue_number || '-';
+                                document.getElementById('customerName').textContent = order.customerName || '-';
+                                document.getElementById('phone').textContent = order.phone || '-';
+                                return;
+                            }
+                            document.getElementById('myQueueNumber').textContent = 'รอชำระเงิน';
+                        })
+                        .catch(() => {
+                            document.getElementById('myQueueNumber').textContent = 'รอชำระเงิน';
+                        });
+                })
+                .catch(() => {
+                    document.getElementById('myQueueNumber').textContent = 'รอชำระเงิน';
+                });
+        }
+
+        renderQueue();
+    </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการคำสั่งซื้อ</title>
+    <style>
+        :root {
+            --bg: #1a1211;
+            --bg-2: #2a1a18;
+            --panel: rgba(45, 32, 30, 0.9);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text: #fff7f2;
+            --muted: #f4d9c2;
+            --accent: #c22a33;
+            --accent-2: #d3ad55;
+            --button: #ff7043;
+            --button-hover: #ff8c5b;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --card-soft: rgba(255,255,255,0.04);
+            --code-bg: rgba(255, 255, 255, 0.04);
+        }
+
+        body.light-mode {
+            --bg: #f3ead6;
+            --bg-2: #e7d7b8;
+            --panel: rgba(255, 255, 255, 0.82);
+            --panel-border: rgba(92, 64, 41, 0.12);
+            --text: #2f241f;
+            --muted: #5f4638;
+            --accent: #8b1d2d;
+            --accent-2: #b47b2c;
+            --button: #f06b3f;
+            --button-hover: #ea5a2b;
+            --shadow: rgba(71, 49, 36, 0.12);
+            --card-soft: rgba(122, 88, 64, 0.04);
+            --code-bg: rgba(122, 88, 64, 0.04);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+            color: var(--text);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0 0 auto 0;
+            height: 10px;
+            z-index: 10;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--accent) 0 30px,
+                var(--accent-2) 30px 34px
+            );
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .page-wrap {
+            position: relative;
+            max-width: 960px;
+            margin: 60px auto 40px;
+            padding: 0 20px;
+        }
+
+        .switch-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 11;
+            width: auto;
+            min-width: 0;
+            display: inline-block;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            margin: 0 0 18px;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+        }
+
+        .order-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            box-shadow: 0 18px 45px var(--shadow);
+            padding: 20px 22px;
+            margin-bottom: 18px;
+            backdrop-filter: blur(8px);
+        }
+
+        .order-card h2 {
+            margin: 0 0 10px;
+            font-size: 1.3rem;
+        }
+
+        .order-card pre {
+            background: var(--code-bg);
+            color: var(--text);
+            padding: 12px 14px;
+            border-radius: 12px;
+            overflow-x: auto;
+            border: 1px solid var(--panel-border);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 700;
+            transition: transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #4d9bf6, #3a7bd5);
+            color: white;
+        }
+
+        .btn-complete {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ff5f6d, #c62828);
+            color: white;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            border: 1px solid var(--panel-border);
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .page-wrap {
+                margin-top: 88px;
+                padding: 0 14px;
+            }
+
+            .order-card {
+                padding: 18px 16px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="switch-button" onclick="toggleTheme()">สวิตช์ธีม</button>
+
+    <div class="page-wrap">
+        <div class="topbar">
+            <a class="back-link" href="adminmain.html">← กลับหน้าหลัก</a>
+        </div>
+
+        <h1>จัดการคำสั่งซื้อ</h1>
+        <div id="order-list"></div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="user.js"></script>
+</body>
+</html>

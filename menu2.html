@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เว็บสั่งอาหาร</title>
+    <style>
+        :root {
+            --bg: #1a1211;
+            --bg-2: #2a1a18;
+            --panel: rgba(45, 32, 30, 0.9);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text: #fff7f2;
+            --muted: #f4d9c2;
+            --accent: #c22a33;
+            --accent-2: #d3ad55;
+            --button: #ff7043;
+            --button-hover: #ff8c5b;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --menu-bg: rgba(255, 255, 255, 0.04);
+            --menu-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body.light-mode {
+            --bg: #f3ead6;
+            --bg-2: #e7d7b8;
+            --panel: rgba(255, 255, 255, 0.82);
+            --panel-border: rgba(92, 64, 41, 0.12);
+            --text: #2f241f;
+            --muted: #5f4638;
+            --accent: #8b1d2d;
+            --accent-2: #b47b2c;
+            --button: #f06b3f;
+            --button-hover: #ea5a2b;
+            --shadow: rgba(71, 49, 36, 0.12);
+            --menu-bg: rgba(122, 88, 64, 0.04);
+            --menu-border: rgba(122, 88, 64, 0.09);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+            color: var(--text);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0 0 auto 0;
+            height: 10px;
+            z-index: 10;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--accent) 0 30px,
+                var(--accent-2) 30px 34px
+            );
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 40%);
+        }
+
+        .page-wrap {
+            position: relative;
+            max-width: 960px;
+            margin: 60px auto 40px;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            box-shadow: 0 18px 45px var(--shadow);
+            padding: 24px 26px;
+            margin-bottom: 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            border: 1px solid var(--panel-border);
+            font-weight: 600;
+        }
+
+        h1,
+        h2 {
+            margin: 0 0 12px;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.02rem;
+        }
+
+        .switch-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 11;
+            width: auto;
+            min-width: 0;
+            display: inline-block;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .switch-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+        }
+
+        .menu-item {
+            display: grid;
+            grid-template-columns: 1fr 170px;
+            gap: 14px;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--menu-border);
+            background: var(--menu-bg);
+            border-radius: 12px;
+            padding-left: 12px;
+            padding-right: 12px;
+            margin-bottom: 10px;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .item-name {
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1.05rem;
+        }
+
+        .item-price {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .quantity-controls {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .qty-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--button), var(--button-hover));
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            box-shadow: 0 10px 22px rgba(255, 112, 67, 0.22);
+            cursor: pointer;
+        }
+
+        .qty-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .quantity-value {
+            min-width: 30px;
+            text-align: center;
+            display: inline-block;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input,
+        textarea,
+        button {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--panel-border);
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--button), var(--button-hover));
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 22px rgba(255, 112, 67, 0.22);
+            font-weight: 700;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        .summary {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .link-row {
+            margin-top: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .page-wrap {
+                margin-top: 88px;
+                padding: 0 14px;
+            }
+
+            .card {
+                padding: 18px 16px;
+            }
+
+            .menu-item {
+                grid-template-columns: 1fr;
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .quantity-controls {
+                justify-content: flex-start;
+            }
+
+            .qty-btn {
+                width: 44px;
+                height: 44px;
+            }
+
+            button {
+                width: 100%;
+                padding: 14px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="switch-button" onclick="toggleTheme()">สวิตช์ธีม</button>
+
+    <div class="page-wrap">
+        <div class="topbar">
+            <a class="back-link" href="main.html">← กลับ</a>
+        </div>
+
+        <div class="card">
+            <h1>สั่งอาหารออนไลน์</h1>
+            <p>กรุณาเลือกเมนูอาหารที่ต้องการ</p>
+        </div>
+
+        <div class="card">
+            <h2>เมนูอาหาร</h2>
+            <div id="menu"></div>
+        </div>
+
+        <div class="card">
+            <button id="goToCartBtn" type="button">ไปยังหน้าตะกร้า</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // load menu items from backend by category (store IDs in DB)
+        const category = 'ผัก'; // ผัก
+        let menuItems = [];
+
+        const fetchMenu = async () => {
+            try {
+                const resp = await axios.get(`http://localhost:8000/menus?category=${category}`);
+                menuItems = Array.isArray(resp.data) ? resp.data : [];
+            } catch (err) {
+                console.error('Load menu error', err);
+                menuItems = [];
+            }
+        };
+
+        const cartStorageKey = 'foodCart';
+        let mode = 'CREATE';
+        let selectedId = '';
+        let currentStatus = 'Pending';
+
+        const formatPrice = (price) => price.toFixed(2);
+
+        const getCartState = () => {
+            const raw = localStorage.getItem(cartStorageKey);
+            try {
+                return raw ? JSON.parse(raw) : { customerName: '', phone: '', address: '', items: [] };
+            } catch {
+                return { customerName: '', phone: '', address: '', items: [] };
+            }
+        };
+
+        const saveCartState = () => {
+            const currentItems = getSelectedItems();
+            const cart = getCartState() || { customerName: '', phone: '', items: [], totalPrice: 0 };
+            const map = new Map();
+            (cart.items || []).forEach(it => map.set(Number(it.id), { ...it }));
+            currentItems.forEach(it => map.set(Number(it.id), { ...it }));
+            const currentIds = new Set(currentItems.map(it => Number(it.id)));
+            menuItems.forEach(item => {
+                if (!currentIds.has(item.id)) {
+                    map.delete(item.id);
+                }
+            });
+            const merged = Array.from(map.values()).filter(it => Number(it.quantity) > 0);
+            const totalPrice = merged.reduce((s, it) => s + (Number(it.price || 0) * Number(it.quantity || 0)), 0);
+            cart.items = merged;
+            cart.totalPrice = totalPrice;
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+        };
+
+        const loadCartState = () => {
+            const cart = getCartState();
+            setMenuQuantities(cart.items || []);
+            calculateTotal();
+        };
+
+        const renderMenu = () => {
+            const menuDOM = document.getElementById('menu');
+            menuDOM.innerHTML = menuItems.map(item => `
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">${formatPrice(item.price)} บาท</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button type="button" class="qty-btn decrement" data-id="${item.id}">-</button>
+                        <span class="quantity-value" data-id="${item.id}">0</span>
+                        <button type="button" class="qty-btn increment" data-id="${item.id}">+</button>
+                    </div>
+                </div>
+            `).join('');
+            attachQuantityListeners();
+        };
+
+        const getQuantity = (id) => {
+            const qtySpan = document.querySelector(`.quantity-value[data-id='${id}']`);
+            return qtySpan ? Number(qtySpan.innerText) : 0;
+        };
+
+        const setQuantity = (id, value) => {
+            const qtySpan = document.querySelector(`.quantity-value[data-id='${id}']`);
+            if (qtySpan) {
+                qtySpan.innerText = Math.max(0, value);
+            }
+        };
+
+        const attachQuantityListeners = () => {
+            document.querySelectorAll('.qty-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = Number(button.dataset.id);
+                    const delta = button.classList.contains('increment') ? 1 : -1;
+                    const currentQty = getQuantity(id);
+                    setQuantity(id, currentQty + delta);
+                    calculateTotal();
+                    saveCartState();
+                });
+            });
+        };
+
+        const calculateTotal = () => {
+            let total = 0;
+            menuItems.forEach(item => {
+                const count = getQuantity(item.id);
+                if (count > 0) {
+                    total += item.price * count;
+                }
+            });
+            const summaryElement = document.getElementById('orderSummary');
+            if (summaryElement) {
+                summaryElement.innerText = `ยอดรวม: ${formatPrice(total)} บาท`;
+            }
+            return total;
+        };
+
+        const getSelectedItems = () => {
+            return menuItems
+                .map(item => {
+                    const quantity = getQuantity(item.id);
+                    return quantity > 0 ? { ...item, quantity } : null;
+                })
+                .filter(Boolean);
+        };
+
+        const setMenuQuantities = (orderItems) => {
+            orderItems.forEach(orderItem => {
+                setQuantity(orderItem.id, orderItem.quantity);
+            });
+        };
+
+        const loadOrderForEdit = async (id) => {
+            try {
+                const response = await axios.get(`http://localhost:8000/orders/${id}`);
+                const order = response.data;
+                document.getElementById('customerName').value = order.customerName || '';
+                document.getElementById('phone').value = order.phone || '';
+                const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]');
+                setMenuQuantities(items);
+                currentStatus = order.status || 'Pending';
+                calculateTotal();
+                saveCartState();
+            } catch (error) {
+                console.error('Load order error', error);
+                alert('ไม่สามารถโหลดข้อมูลคำสั่งซื้อได้');
+            }
+        };
+
+        window.onload = async () => {
+            await fetchMenu();
+            renderMenu();
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (id) {
+                mode = 'EDIT';
+                selectedId = id;
+                await loadOrderForEdit(id);
+            } else {
+                loadCartState();
+            }
+        };
+
+        const submitData = async () => {
+            const customerName = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const items = getSelectedItems();
+            const totalPrice = calculateTotal();
+
+            if (!customerName || !phone) {
+                alert('กรุณากรอกชื่อ และเบอร์โทรให้ครบถ้วน');
+                return;
+            }
+
+            if (items.length === 0) {
+                alert('กรุณาเลือกสินค้าหรือจำนวนอย่างน้อย 1 เมนู');
+                return;
+            }
+
+            const orderData = {
+                customerName,
+                phone,
+                items,
+                totalPrice,
+                status: currentStatus || 'Pending'
+            };
+
+            try {
+                if (mode === 'CREATE') {
+                    await axios.post('http://localhost:8000/orders', orderData);
+                    alert('สั่งอาหารเรียบร้อยแล้ว');
+                } else {
+                    await axios.put(`http://localhost:8000/orders/${selectedId}`, orderData);
+                    alert('แก้ไขคำสั่งซื้อเรียบร้อยแล้ว');
+                }
+                localStorage.removeItem(cartStorageKey);
+                window.location.href = 'user.html';
+            } catch (error) {
+                console.error('Submit error', error);
+                alert('เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ กรุณาลองใหม่อีกครั้ง');
+            }
+        };
+
+        document.getElementById('goToCartBtn').addEventListener('click', () => {
+            window.location.href = 'cart.html';
+        });
+    </script>
+</body>
+
+</html>

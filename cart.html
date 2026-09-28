@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตะกร้าสินค้า</title>
+    <style>
+        :root {
+            --bg: #1a1211;
+            --bg-2: #2a1a18;
+            --panel: rgba(45, 32, 30, 0.9);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text: #fff7f2;
+            --muted: #f4d9c2;
+            --accent: #c22a33;
+            --accent-2: #d3ad55;
+            --button: #ff7043;
+            --button-hover: #ff8c5b;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --menu-bg: rgba(255, 255, 255, 0.04);
+            --menu-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body.light-mode {
+            --bg: #f3ead6;
+            --bg-2: #e7d7b8;
+            --panel: rgba(255, 255, 255, 0.82);
+            --panel-border: rgba(92, 64, 41, 0.12);
+            --text: #2f241f;
+            --muted: #5f4638;
+            --accent: #8b1d2d;
+            --accent-2: #b47b2c;
+            --button: #f06b3f;
+            --button-hover: #ea5a2b;
+            --shadow: rgba(71, 49, 36, 0.12);
+            --menu-bg: rgba(122, 88, 64, 0.04);
+            --menu-border: rgba(122, 88, 64, 0.09);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+            color: var(--text);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0 0 auto 0;
+            height: 10px;
+            z-index: 10;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--accent) 0 30px,
+                var(--accent-2) 30px 34px
+            );
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 40%);
+        }
+
+        .page-wrap {
+            position: relative;
+            max-width: 960px;
+            margin: 60px auto 40px;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            box-shadow: 0 18px 45px var(--shadow);
+            padding: 24px 26px;
+            margin-bottom: 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            border: 1px solid var(--panel-border);
+            font-weight: 600;
+        }
+
+        h1,
+        h2 {
+            margin: 0 0 12px;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.02rem;
+        }
+
+        .switch-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 11;
+            width: auto;
+            min-width: 0;
+            display: inline-block;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .switch-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 1fr 120px 100px;
+            gap: 12px;
+            align-items: center;
+            padding: 16px 12px;
+            border-bottom: 1px solid var(--menu-border);
+            background: var(--menu-bg);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .cart-item strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 1.05rem;
+        }
+
+        .cart-total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: right;
+            margin-top: 18px;
+            color: var(--text);
+        }
+
+        .note {
+            margin-top: 10px;
+            color: var(--muted);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button,
+        a.button {
+            width: auto;
+            min-width: 160px;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #fff;
+            background: linear-gradient(135deg, var(--button), var(--button-hover));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 22px rgba(255, 112, 67, 0.22);
+        }
+
+        button:hover,
+        a.button:hover {
+            transform: translateY(-1px);
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .payment-group {
+            margin-top: 12px;
+            padding: 16px;
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            margin: 0;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .payment-option input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: var(--button);
+        }
+
+        .empty-message {
+            color: var(--muted);
+            padding: 12px 0;
+        }
+
+        .heading {
+            display: flex;
+            justify-content: flex-end;
+            gap: 18px;
+            margin: 0 0 10px;
+            padding: 0 12px 10px;
+            border-bottom: 1px solid var(--menu-border);
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        #submitOrderBtn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--button), var(--button-hover));
+            padding: 16px 22px;
+            font-size: 1rem;
+            border-radius: 12px;
+            display: block;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .page-wrap {
+                margin-top: 88px;
+                padding: 0 14px;
+            }
+
+            .card {
+                padding: 18px 16px;
+            }
+
+            .cart-item {
+                grid-template-columns: 1fr;
+            }
+
+            .heading {
+                justify-content: flex-start;
+                gap: 12px;
+                padding-left: 0;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            button,
+            a.button {
+                width: 100%;
+                padding: 14px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="switch-button" onclick="toggleTheme()">สวิตช์ธีม</button>
+
+    <div class="page-wrap">
+        <div class="topbar">
+            <a class="back-link" href="main.html">← กลับหน้าหลัก</a>
+        </div>
+
+        <div class="card">
+            <h1>ตะกร้าสินค้า</h1>
+            <div class="heading">
+                <div style="width: 170px; text-align: center;">ราคา/ชิ้น</div>
+                <div style="width: 100px; text-align: center;">รวม</div>
+            </div>
+            <div id="cartContent"></div>
+            <div class="button-row">
+                <a class="button" href="main.html">กลับไปเลือกอาหาร</a>
+                <button id="clearCartBtn" type="button">ล้างตะกร้า</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>ข้อมูลการสั่งซื้อ</h1>
+
+            <div id="customerForm">
+                <label>
+                    ชื่อผู้สั่ง
+                    <input id="customerName" type="text" placeholder="เช่น สมชาย ใจดี">
+                </label>
+
+                <label>
+                    เบอร์ติดต่อ
+                    <input id="phone" type="tel" placeholder="เช่น 0812345678">
+                </label>
+
+                <div class="payment-group">
+                    <label>วิธีการชำระเงิน <span style="color: #ff9a9a;">*</span></label>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="cash" required>
+                        <span>จ่ายตรง</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="qr" required>
+                        <span>จ่ายผ่าน QR Code</span>
+                    </label>
+                </div>
+            </div>
+            <div class="button-row">
+                <button id="submitOrderBtn" type="button">สั่งอาหาร</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const cartStorageKey = 'foodCart';
+
+        const formatPrice = (price) => Number(price).toFixed(2);
+
+        const getCartState = () => {
+            const raw = localStorage.getItem(cartStorageKey);
+            try {
+                return raw ? JSON.parse(raw) : null;
+            } catch {
+                return null;
+            }
+        };
+
+        const clearCart = () => {
+            localStorage.removeItem(cartStorageKey);
+            renderCart();
+        };
+
+        const calculateTotalFromItems = (items) => {
+            if (!Array.isArray(items)) return 0;
+            return items.reduce((sum, it) => sum + (Number(it.price || 0) * Number(it.quantity || 0)), 0);
+        };
+
+        const saveCartFields = () => {
+            const nameEl = document.getElementById('customerName');
+            const phoneEl = document.getElementById('phone');
+            const name = (nameEl?.value || '').trim();
+            const phone = (phoneEl?.value || '').trim();
+            const cart = getCartState() || { customerName: '', phone: '', items: [], totalPrice: 0 };
+            cart.customerName = name;
+            cart.phone = phone;
+            cart.totalPrice = calculateTotalFromItems(cart.items || []);
+            localStorage.setItem(cartStorageKey, JSON.stringify(cart));
+            renderCart();
+        };
+
+        const loadCartFields = () => {
+            const cart = getCartState();
+            if (!cart) return;
+            const nameEl = document.getElementById('customerName');
+            const phoneEl = document.getElementById('phone');
+            if (nameEl) nameEl.value = cart.customerName || '';
+            if (phoneEl) phoneEl.value = cart.phone || '';
+        };
+
+        const attachCustomerListeners = () => {
+            ['customerName', 'phone'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    saveCartFields();
+                });
+            });
+        };
+
+        const renderCart = () => {
+            const cart = getCartState();
+            const cartContent = document.getElementById('cartContent');
+            cartContent.innerHTML = '';
+
+            if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
+                cartContent.innerHTML = '<p class="empty-message">ยังไม่มีสินค้าในตะกร้า</p>';
+                return;
+            }
+
+            const itemList = document.createElement('div');
+            cart.items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'cart-item';
+                row.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong>
+                        จำนวน ${item.quantity} ชิ้น
+                    </div>
+                    <div>${formatPrice(item.price)} บาท</div>
+                    <div>${formatPrice(item.price * item.quantity)} บาท</div>
+                `;
+                itemList.appendChild(row);
+            });
+            cartContent.appendChild(itemList);
+
+            const total = document.createElement('div');
+            total.className = 'cart-total';
+            total.innerText = `ยอดรวมทั้งหมด: ${formatPrice(cart.totalPrice || 0)} บาท`;
+            cartContent.appendChild(total);
+
+            const note = document.createElement('div');
+            note.className = 'note';
+            note.innerText = 'ยอดรวมนี้จะแสดงในหน้าตะกร้าเท่านั้น สามารถแก้ไขได้ที่หน้าสั่งอาหาร';
+            cartContent.appendChild(note);
+        };
+
+        document.getElementById('clearCartBtn').addEventListener('click', () => {
+            if (confirm('ต้องการล้างตะกร้าจริงหรือไม่?')) {
+                clearCart();
+            }
+        });
+
+        const submitBtn = document.getElementById('submitOrderBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', async () => {
+                const cart = getCartState();
+                if (!cart) {
+                    alert('ยังไม่มีสินค้าในตะกร้า');
+                    return;
+                }
+                const { customerName, phone, items, totalPrice } = cart;
+                const paymentMethodCheckboxes = document.querySelectorAll('input[name="paymentMethod"]');
+                const selectedPaymentMethods = Array.from(paymentMethodCheckboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => checkbox.value);
+                const paymentMethod = selectedPaymentMethods.length > 0 ? selectedPaymentMethods[0] : '';
+
+                paymentMethodCheckboxes.forEach(checkbox => {
+                    checkbox.onchange = () => {
+                        if (checkbox.checked) {
+                            paymentMethodCheckboxes.forEach(other => {
+                                if (other !== checkbox) other.checked = false;
+                            });
+                        }
+                    };
+                });
+
+                if (!customerName || !phone) {
+                    alert('กรุณากรอกชื่อ เบอร์โทร ให้ครบถ้วน');
+                    return;
+                }
+                if (!paymentMethod) {
+                    alert('กรุณาเลือกวิธีชำระเงิน');
+                    return;
+                }
+                if (!Array.isArray(items) || items.length === 0) {
+                    alert('กรุณาเลือกสินค้าอย่างน้อย 1 รายการ');
+                    return;
+                }
+                try {
+                    const response = await axios.post('http://localhost:8000/orders', {
+                        customerName,
+                        phone,
+                        items,
+                        totalPrice,
+                        paymentMethod,
+                        status: 'Awaiting Payment'
+                    });
+
+                    const queueNumber = response.data && response.data.queueNumber;
+                    alert(`สั่งอาหารเรียบร้อยแล้ว รอการชำระเงิน หมายเลขออเดอร์: ${response.data.orderId} ${queueNumber ? `| คิว: ${queueNumber}` : ''}`);
+                    localStorage.removeItem(cartStorageKey);
+                    window.location.href = `queue.html?orderId=${response.data.orderId}`;
+                } catch (error) {
+                    console.error('Submit error', error);
+                    alert('เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ กรุณาลองใหม่อีกครั้ง');
+                }
+            });
+        }
+
+        // initialize form values and listeners, then render
+        loadCartFields();
+        attachCustomerListeners();
+        renderCart();
+    </script>
+</body>
+
+</html>

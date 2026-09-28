@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบแอดมิน</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-container h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .login-btn:hover {
+            background-color: #764ba2;
+        }
+        .login-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #d32f2f;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 5px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>เข้าสู่ระบบแอดมิน</h1>
+        <div id="errorMessage" class="error-message"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">ชื่อผู้ใช้:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">รหัสผ่าน:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="login-btn" id="loginBtn">เข้าสู่ระบบ</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            errorDiv.classList.remove('show');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'กำลังโหลด...';
+            
+            // ตรวจสอบข้อมูลผู้ใช้จากฐานข้อมูล (users)
+            fetch('http://localhost:8000/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // เปลี่ยนเส้นทางไปยัง adminmain.html เมื่อเข้าสู่ระบบสำเร็จ
+                    window.location.href = 'adminmain.html';
+                } else {
+                    // แสดงข้อความแสดงข้อผิดพลาดหากข้อมูลไม่ตรงกัน
+                    errorDiv.textContent = data.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                    errorDiv.classList.add('show');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'เข้าสู่ระบบ';
+                }
+            })
+            .catch(error => {
+                errorDiv.textContent = 'เกิดข้อผิดพลาด โปรดลองอีกครั้ง';
+                errorDiv.classList.add('show');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'เข้าสู่ระบบ';
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
