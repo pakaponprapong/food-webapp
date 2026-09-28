@@ -1,1 +1,5 @@
 YOU MUST USE NPM INSTALL BEFORE USING. THE SERVER MUST BE CONNECTED TO ENSURE EVERYTHING WORKS.
+Setup
+1. Use MAMP to connect server
+2. Use "node index.js" command
+3. Enjoy
